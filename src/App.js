@@ -168,7 +168,7 @@ function SecuenciasGame({level, onComplete}) {
         setVisible(prev=>[...prev,nums.current[idx]]);
         setActiveIdx(idx); idx++;
         setTimeout(showNext,850);
-      } else { setTimeout(()=>setActiveIdx(-1), 600); setTimeout(()=>setPhase('input'),1200); }
+      } else { setTimeout(()=>{ setActiveIdx(idx-1); setTimeout(()=>{ setActiveIdx(-1); setTimeout(()=>setPhase('input'),400); },700); },0); }
     }
     setTimeout(showNext,400);
   },[]);
