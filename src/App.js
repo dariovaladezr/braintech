@@ -163,13 +163,12 @@ function SecuenciasGame({level, onComplete}) {
   useEffect(()=>{
     const total = nums.current.length;
     nums.current.forEach((_, i) => {
-      // Show each number
       setTimeout(() => setActiveIdx(i), 400 + i * 900);
-      // Hide it (except last one gets more time)
-      setTimeout(() => setActiveIdx(-1), 400 + i * 900 + 700);
+      if (i < total - 1) {
+        setTimeout(() => setActiveIdx(-1), 400 + i * 900 + 700);
+      }
     });
-    // After all shown, switch to input
-    setTimeout(() => setPhase('input'), 400 + total * 900 + 800);
+    setTimeout(() => setPhase('input'), 400 + total * 900 + 900);
   },[]);
 
   function check(){
