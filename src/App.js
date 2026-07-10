@@ -155,58 +155,82 @@ function MemoriaGame({level, round, onComplete}) {
 }
 
 function SecuenciasGame({level, onComplete}) {
-  const nums = useRef(Array.from({length:3+level},()=>Math.floor(Math.random()*9)+1));
-  const [phase, setPhase] = useState('show');
-  const [activeIdx, setActiveIdx] = useState(-1);
+  const [nums] = useState(() => Array.from({length:3+level},()=>Math.floor(Math.random()*9)+1));
+  const [phase, setPhase] = useState('ready');   // ready -> show -> input
+  const [step, setStep] = useState(-1);          // which index is currently shown
   const [answer, setAnswer] = useState('');
 
-  useEffect(()=>{
-    const total = nums.current.length;
-    nums.current.forEach((_, i) => {
-      setTimeout(() => setActiveIdx(i), 400 + i * 900);
-      if (i < total - 1) {
-        setTimeout(() => setActiveIdx(-1), 400 + i * 900 + 700);
+  // Step 1: brief "get ready" pause, then start showing numbers
+  useEffect(() => {
+    const t = setTimeout(() => { setPhase('show'); setStep(0); }, 500);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Step 2: each number stays visible for a fixed duration, THEN we advance.
+  // Because this effect re-runs every time `step` changes, and it always
+  // waits the same amount of time before acting, the last number gets
+  // exactly the same on-screen time as every other number.
+  useEffect(() => {
+    if (phase !== 'show') return;
+    const DURATION = 900;
+    const t = setTimeout(() => {
+      if (step < nums.length - 1) {
+        setStep(step + 1);
+      } else {
+        setPhase('input');
       }
-    });
-    setTimeout(() => setPhase('input'), 400 + total * 900 + 900);
-  },[]);
+    }, DURATION);
+    return () => clearTimeout(t);
+  }, [phase, step, nums.length]);
 
   function check(){
-    const clean=answer.trim().replace(/,/g,' ').replace(/\s+/g,' ');
-    const correct = clean===nums.current.join(' ');
-    onComplete(correct, correct?10+level*5:0);
+    const clean = answer.trim().replace(/,/g,' ').replace(/\s+/g,' ');
+    const correct = clean === nums.join(' ');
+    onComplete(correct, correct ? 10+level*5 : 0);
   }
+
+  const currentNum = phase === 'show' && step >= 0 ? nums[step] : null;
 
   return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'24px',width:'100%'}}>
       <p style={{color:C.textSec,fontSize:'15px',margin:0,textAlign:'center'}}>
-        {phase==='show'?'Observa la secuencia':'Escribe la secuencia en orden'}
+        {phase==='input' ? 'Escribe la secuencia en orden' : 'Observa la secuencia'}
       </p>
-      <div style={{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'center'}}>
-        {phase==='show'
-         ? nums.current.map((n,i)=>(
-    i > activeIdx && activeIdx !== nums.current.length - 1 ? null :
-    <div key={i} style={{
-      width:'48px',height:'48px',borderRadius:'10px',
-      background:i===activeIdx?C.accentBg:C.surfaceAlt,
-      border:`0.5px solid ${i===activeIdx?C.accent:C.border}`,
-      display:'flex',alignItems:'center',justifyContent:'center',
-      fontSize:'20px',fontWeight:'500',
-      color:i===activeIdx?C.accent:C.textMuted,
-      transition:'all 0.15s',
-    }}>{n}</div>
-  ))
-          : nums.current.map((_,i)=>(
-              <div key={i} style={{
-                width:'48px',height:'48px',borderRadius:'10px',
-                background:C.surfaceAlt, border:`0.5px solid ${C.border}`,
-                display:'flex',alignItems:'center',justifyContent:'center',
-                fontSize:'20px',color:C.textMuted,
-              }}>?</div>
-            ))
-        }
-      </div>
+
+      {phase !== 'input' && (
+        <div style={{
+          width:'110px',height:'110px',borderRadius:'18px',
+          background: currentNum!==null ? C.accentBg : C.surfaceAlt,
+          border:`1.5px solid ${currentNum!==null ? C.accent : C.border}`,
+          display:'flex',alignItems:'center',justifyContent:'center',
+          fontSize:'44px',fontWeight:'600',
+          color: currentNum!==null ? C.accent : C.textMuted,
+        }}>{currentNum !== null ? currentNum : ''}</div>
+      )}
+
+      {phase !== 'input' && (
+        <div style={{display:'flex',gap:'8px',justifyContent:'center'}}>
+          {nums.map((_,i)=>(
+            <div key={i} style={{
+              width:'10px',height:'10px',borderRadius:'50%',
+              background: i===step ? C.accent : C.border,
+              transition:'background 0.15s',
+            }}/>
+          ))}
+        </div>
+      )}
+
       {phase==='input' && <>
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'center'}}>
+          {nums.map((_,i)=>(
+            <div key={i} style={{
+              width:'48px',height:'48px',borderRadius:'10px',
+              background:C.surfaceAlt,border:`0.5px solid ${C.border}`,
+              display:'flex',alignItems:'center',justifyContent:'center',
+              fontSize:'20px',color:C.textMuted,
+            }}>?</div>
+          ))}
+        </div>
         <input
           autoFocus value={answer} onChange={e=>setAnswer(e.target.value)}
           onKeyDown={e=>e.key==='Enter'&&check()}
