@@ -184,17 +184,18 @@ function SecuenciasGame({level, onComplete}) {
       </p>
       <div style={{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'center'}}>
         {phase==='show'
-          ? nums.current.map((n,i)=>(
-              <div key={i} style={{
-                width:'48px',height:'48px',borderRadius:'10px',
-                background:i===activeIdx?C.accentBg:C.surfaceAlt,
-                border:`0.5px solid ${i===activeIdx?C.accent:C.border}`,
-                display:'flex',alignItems:'center',justifyContent:'center',
-                fontSize:'20px',fontWeight:'500',
-                color:i===activeIdx?C.accent:C.textMuted,
-                transition:'all 0.15s',
-              }}>{i<=activeIdx?n:'?'}</div>
-            ))
+         ? nums.current.map((n,i)=>(
+    i > activeIdx && activeIdx !== nums.current.length - 1 ? null :
+    <div key={i} style={{
+      width:'48px',height:'48px',borderRadius:'10px',
+      background:i===activeIdx?C.accentBg:C.surfaceAlt,
+      border:`0.5px solid ${i===activeIdx?C.accent:C.border}`,
+      display:'flex',alignItems:'center',justifyContent:'center',
+      fontSize:'20px',fontWeight:'500',
+      color:i===activeIdx?C.accent:C.textMuted,
+      transition:'all 0.15s',
+    }}>{n}</div>
+  ))
           : nums.current.map((_,i)=>(
               <div key={i} style={{
                 width:'48px',height:'48px',borderRadius:'10px',
