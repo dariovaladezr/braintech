@@ -157,20 +157,19 @@ function MemoriaGame({level, round, onComplete}) {
 function SecuenciasGame({level, onComplete}) {
   const nums = useRef(Array.from({length:3+level},()=>Math.floor(Math.random()*9)+1));
   const [phase, setPhase] = useState('show');
-  const [visible, setVisible] = useState([]);
   const [activeIdx, setActiveIdx] = useState(-1);
   const [answer, setAnswer] = useState('');
 
   useEffect(()=>{
-    let idx=0;
-    function showNext(){
-      if (idx<nums.current.length) {
-        setVisible(prev=>[...prev,nums.current[idx]]);
-        setActiveIdx(idx); idx++;
-        setTimeout(showNext,850);
-        } else { setActiveIdx(nums.current.length - 1); setTimeout(() => { setActiveIdx(-1); setPhase('input'); }, 800); }
-    }
-    setTimeout(showNext,400);
+    const total = nums.current.length;
+    nums.current.forEach((_, i) => {
+      // Show each number
+      setTimeout(() => setActiveIdx(i), 400 + i * 900);
+      // Hide it (except last one gets more time)
+      setTimeout(() => setActiveIdx(-1), 400 + i * 900 + 700);
+    });
+    // After all shown, switch to input
+    setTimeout(() => setPhase('input'), 400 + total * 900 + 800);
   },[]);
 
   function check(){
@@ -186,15 +185,16 @@ function SecuenciasGame({level, onComplete}) {
       </p>
       <div style={{display:'flex',gap:'8px',flexWrap:'wrap',justifyContent:'center'}}>
         {phase==='show'
-          ? visible.map((n,i)=>(
+          ? nums.current.map((n,i)=>(
               <div key={i} style={{
                 width:'48px',height:'48px',borderRadius:'10px',
-                background:i===activeIdx?C.accentBg:C.surface,
+                background:i===activeIdx?C.accentBg:C.surfaceAlt,
                 border:`0.5px solid ${i===activeIdx?C.accent:C.border}`,
                 display:'flex',alignItems:'center',justifyContent:'center',
                 fontSize:'20px',fontWeight:'500',
-                color:i===activeIdx?C.accent:C.text,
-              }}>{n}</div>
+                color:i===activeIdx?C.accent:C.textMuted,
+                transition:'all 0.15s',
+              }}>{i<=activeIdx?n:'?'}</div>
             ))
           : nums.current.map((_,i)=>(
               <div key={i} style={{
